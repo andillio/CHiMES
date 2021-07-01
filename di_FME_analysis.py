@@ -10,7 +10,7 @@ from numpy import linalg as LA
 import scipy.stats as st 
 
 
-simName = "Sin_h1_r1"
+simName = "testM4_r1"
 label = ""
 PLOT = True
 
@@ -24,6 +24,7 @@ class figObj(object):
         self.framesteps = None 
         self.Norm = None 
         self.phi = None 
+        self.n = None
 
         self.name = None 
 fo = figObj()
@@ -79,7 +80,7 @@ def get_fmeVals(approxName, tag):
 
 def setFigObj(name):
     # read in simulation parameters
-    meta = u.getMetaKno(name, dir = 'Data/', N = "N", dt = "dt", frames = "frames", 
+    meta = u.getMetaKno(name, dir = 'Data/', N = "N", dt = "dt", frames = "frames", IC = "IC",
         framesteps = "framesteps", Norm = "Norm", omega0 = "omega0", Lambda0 = "Lambda0")
     fo.meta = meta
 
@@ -91,6 +92,12 @@ def setFigObj(name):
     fo.dt = fo.meta["dt"]
     fo.framsteps = fo.meta["framesteps"]
     fo.Norm =  fo.meta["Norm"]
+    fo.IC = fo.meta["IC"]
+
+    try:
+        fo.n = np.abs(fo.Norm)**2
+    except TypeError:
+        fo.n = np.abs(fo.IC).sum()
 
     np.random.seed(1)
     fo.phi = np.random.uniform(0, 2 * np.pi, fo.N)
@@ -101,7 +108,10 @@ def analyze():
 
     n_out = len(ba)
 
-    n_tot = np.abs(fo.Norm)**2
+    try:
+        n_tot = np.abs(fo.Norm)**2
+    except TypeError:
+        n_tot = np.abs(fo.IC).sum()
 
     N = np.zeros((n_out,fo.N)) + 0j
     eigs = np.zeros((n_out,fo.N)) + 0j
@@ -131,7 +141,10 @@ def SaveStuff(t, Num, M, eigs, aa, a, Q, label):
 def makePOQFig(t, eigs, Q):
     fig, ax = plt.subplots(figsize = (6,6))
 
-    n = np.abs(fo.Norm)**2
+    try:
+        n = np.abs(fo.Norm)**2
+    except TypeError:
+        n = np.abs(fo.IC).sum()
 
     ax.set_xlabel(r'$t$')
 
