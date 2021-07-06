@@ -10,9 +10,10 @@ from numpy import linalg as LA
 import scipy.stats as st 
 
 
-simName = "testM4_r1"
+simName = "GrE_r2"
 label = ""
 PLOT = True
+SCALE_TIME = False
 
 class figObj(object):
 
@@ -127,7 +128,13 @@ def analyze():
 
 
 def SaveStuff(t, Num, M, eigs, aa, a, Q, label):
-    np.save("../Data/" + fo.name + "/" + "_t" + label + ".npy", t)
+
+    r = 1.
+
+    if SCALE_TIME:
+        r = np.abs(Num[0]).sum()/5.
+
+    np.save("../Data/" + fo.name + "/" + "_t" + label + ".npy", t*r)
     np.save("../Data/" + fo.name + "/" + "_N" + label + ".npy", Num)
     np.save("../Data/" + fo.name + "/" + "_M" + label + ".npy", M)
     np.save("../Data/" + fo.name + "/" + "_eigs" + label + ".npy", eigs)
@@ -239,6 +246,15 @@ def main(name, label = "", plot = PLOT):
 
     tmin, amin = get_aVals(name, '')
     Nmin = np.abs(amin)**2
+
+    r = 1.
+
+    if SCALE_TIME:
+        r = np.abs(Nmin[0]).sum()/5.
+
+    np.save("../Data/" + fo.name + "/" + "_t" + ".npy", tmin*r)
+    np.save("../Data/" + fo.name + "/" + "_a" + ".npy", amin)
+    np.save("../Data/" + fo.name + "/" + "_N.npy", Nmin)
 
     t, N, M, eigs, aa, a, Q = analyze()
 

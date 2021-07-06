@@ -145,8 +145,8 @@ class DynVars(object):
         pad_psi_ = np.conj(pad_psi)
 
         kx_pad = 2*np.pi*sp.fftfreq(3*s.N, d = s.L/s.N)
-        kern_alt_pad = 1./kx_pad**2
-        kern_alt_pad[kx_pad == 0] = 0
+        kern_alt_pad = s.C/kx_pad**2 + s.Lambda0
+        kern_alt_pad[kx_pad == 0] = s.Lambda0
 
         if self.is_dispersion_quadratic:
             a_ += -1j * dt_ * .5 * self.kord**2 * s.omega0*a
@@ -154,7 +154,7 @@ class DynVars(object):
             a_ += -1j * dt_ * self.kord * s.omega0*a
 
         # C_ij * b[i] * a[j] * a[p+i-j]
-        term = pad_psi*pad_psi_ * dt_ * s.C 
+        term = pad_psi*pad_psi_ * dt_
         term = sp.fft(term)
         term = term * kern_alt_pad
         term = sp.ifft(term)
@@ -173,7 +173,7 @@ class DynVars(object):
             term = sp.fft(term)
             term = term * kern_alt_pad
             term = sp.ifft(term)
-            term = term * pad_psi * dt_ * s.C 
+            term = term * pad_psi * dt_ 
             term = self.psi2a(term, s)[s.N:2*s.N]
             da_ = term / np.sqrt(18.) # / np.sqrt(s.N)**2  * np.sqrt(s.L)**4
             a_ += -1j* da_ 
@@ -181,7 +181,7 @@ class DynVars(object):
             # dbda[i][p+i-j] * a[j]
             term = np.concatenate((zeros2j,dbda,zeros2j), axis=1)
             term = np.concatenate((zeros2iL,term,zeros2iL), axis=0)
-            term = self.b2psi_(term,s, axis = 0) * dt_ * s.C 
+            term = self.b2psi_(term,s, axis = 0) * dt_ 
             term = np.einsum("ij,i->ij", term, pad_psi)
             term = sp.fft(term, axis = 0)
             term = np.einsum("ij,i->ij", term, kern_alt_pad)
@@ -196,7 +196,7 @@ class DynVars(object):
             # dada[p+i-j][j] * b[i]
             term = np.concatenate((zeros2j,dada,zeros2j), axis=1)
             term = np.concatenate((zeros2iL,term,zeros2iL), axis=0)
-            term = self.a2psi(term,s, axis = 1) * dt_ * s.C 
+            term = self.a2psi(term,s, axis = 1) * dt_ 
             term = np.einsum("ij,j->ij", term, pad_psi_)
             term = sp.fft(term, axis = 1)
             term = np.einsum("ij,j->ij", term, kern_alt_pad)
@@ -239,19 +239,19 @@ class DynVars(object):
 
         One = np.ones(s.N)
         deltak = np.einsum("i,j->ij", s.kord, One) - np.einsum("i,j->ji", s.kord, One)
-        kern = 1./deltak**2
-        kern[deltak == 0] = 0
-        kern_alt = 1./s.kx**2
-        kern_alt[s.kx == 0] = 0
-        kern_alt_ord = 1./s.kord**2
-        kern_alt_ord[s.kord==0]=0
+        kern = s.C/deltak**2 + s.Lambda0
+        kern[deltak == 0] = s.Lambda0
+        kern_alt = s.C/s.kx**2 + s.Lambda0
+        kern_alt[s.kx == 0] = s.Lambda0
+        kern_alt_ord = s.C/s.kord**2 + s.Lambda0
+        kern_alt_ord[s.kord==0]=s.Lambda0
         kx_pad = 2*np.pi*sp.fftfreq(3*s.N, d = s.L/s.N)
-        kern_alt_pad = 1./kx_pad**2
-        kern_alt_pad[kx_pad == 0] = 0
+        kern_alt_pad = s.C/kx_pad**2 + s.Lambda0
+        kern_alt_pad[kx_pad == 0] = s.Lambda0
 
         kx_pad_ord = sp.fftshift(kx_pad)
-        kern_alt_pad_ord = 1./kx_pad_ord**2
-        kern_alt_pad_ord[kx_pad_ord == 0] = 0
+        kern_alt_pad_ord = s.C/kx_pad_ord**2 + s.Lambda0
+        kern_alt_pad_ord[kx_pad_ord == 0] = s.Lambda0
 
         if self.is_dispersion_quadratic:
             aa_ += -1j * dt_ * .5 * (np.einsum("i,j->ij", s.kord, One)**2 + np.einsum("i,j->ji", s.kord, One)**2)*s.omega0*dada
@@ -261,7 +261,7 @@ class DynVars(object):
         
         # C_ij*aa[l_,j_]*b[k_]*a[p]  
         term = np.concatenate((zeros2i,dada,zeros2i), axis = 0)
-        term = self.a2psi(term,s, axis = 0) * dt_ * s.C 
+        term = self.a2psi(term,s, axis = 0) * dt_  
         term = np.einsum("ij,i->ij", term, pad_psi_)
         term = sp.fft(term, axis = 0)
         term = np.einsum("ij,i->ij", term, kern_alt_pad)
@@ -274,7 +274,7 @@ class DynVars(object):
 
         # C_ij*aa[j_,p]*b[k_]*a[l_]
         aa_pad = np.concatenate((zeros2j, dada, zeros2j), axis = 1)
-        aa_pad = self.a2psi(aa_pad,s, axis = 1) * dt_ * s.C
+        aa_pad = self.a2psi(aa_pad,s, axis = 1) * dt_ 
         term = pad_psi*pad_psi_
         term = sp.fft(term)
         term = term*kern_alt_pad
@@ -288,7 +288,7 @@ class DynVars(object):
 
         # C_ij*ba[k_,j_]*a[l_]*a[p]
         term = np.concatenate( (zeros2i, dbda, zeros2i), axis = 0 )
-        term = self.b2psi_(term,s, axis = 0)  * dt_ * s.C
+        term = self.b2psi_(term,s, axis = 0)  * dt_ 
         term = np.einsum("ij,i->ij", term, pad_psi)
         term = sp.fft(term, axis = 0)
         term = np.einsum("ij,i->ij", term, kern_alt_pad)
@@ -304,7 +304,7 @@ class DynVars(object):
         K = self.a2psi(K,s, axis = 0)
         K = self.a2psi(K,s, axis = 1)
         aa_x = self.a2psi(aa_pad,s, axis = 0)
-        aa_x = self.b2psi_(aa_x,s, axis = 1) * dt_ * s.C
+        aa_x = self.b2psi_(aa_x,s, axis = 1) * dt_
         term = K*aa_x 
         term = self.psi2a(term,s, axis = 0)
         term = self.psi_2b(term,s, axis = 1)  * np.sqrt(s.N)**2 
@@ -320,10 +320,9 @@ class DynVars(object):
 
         One = np.ones(s.N)
 
-
         kx_pad = 2*np.pi*sp.fftfreq(3*s.N, d = s.L/s.N)
-        kern_alt_pad = 1./kx_pad**2
-        kern_alt_pad[kx_pad == 0] = 0
+        kern_alt_pad = s.C/kx_pad**2 + s.Lambda0
+        kern_alt_pad[kx_pad == 0] = s.Lambda0
          
         a_pad = np.concatenate((zeros, a, zeros))
         pad_psi = sp.ifft(sp.ifftshift(a_pad)) * np.sqrt(2*s.N) #* s.dk
@@ -336,7 +335,7 @@ class DynVars(object):
 
         # dada[j][k] * b[i+k-l] * b[l]
         term = np.concatenate((zeros2i,dada,zeros2i), axis = 0)
-        term = self.a2psi(term, s, axis = 0) * dt_ * s.C
+        term = self.a2psi(term, s, axis = 0) * dt_ 
         term = np.einsum("ij,i->ij", term, pad_psi_)
         term = sp.fft(term, axis = 0)
         term = np.einsum("ij,i->ij", term, kern_alt_pad)
@@ -347,7 +346,7 @@ class DynVars(object):
         ba_ += daa_ + np.conj(daa_.T)
 
         # dbda[i+k-l][j] * b[l] * a[k]
-        term = pad_psi*pad_psi_ * dt_ * s.C 
+        term = pad_psi*pad_psi_ * dt_ 
         term = sp.fft(term)
         term = term * kern_alt_pad
         term = sp.ifft(term)
@@ -360,7 +359,7 @@ class DynVars(object):
 
         #  ba[l][j] * b[p] * a[k]
         term = np.concatenate( (zeros2i, dbda, zeros2i), axis = 0 )
-        term = self.b2psi_(term,s, axis = 0) * dt_ * s.C
+        term = self.b2psi_(term,s, axis = 0) * dt_
         term = np.einsum("ij,i->ij", term, pad_psi)
         term = sp.fft(term, axis = 0)
         term = np.einsum("ij,i->ij", term, kern_alt_pad)

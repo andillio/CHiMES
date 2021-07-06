@@ -7,9 +7,9 @@ import utils as u
 import di_FME_analysis
 import scipy.fftpack as sp
 
-r = 1
+r = 2
 #ofile = "M4test_DOE_r"+str(r) # name of directory to be created
-ofile = "Odd_M4_r" + str(r) # name of directory to be created
+ofile = "GrE_r" + str(r) # name of directory to be created
 #ofile = "testRepl_r" + str(r) # name of directory to be created
 #ofile = "testExpFast" + str(r) # name of directory to be created
 gauss = False
@@ -21,12 +21,12 @@ framesteps = int(256 * np.sqrt(r)) * 4
 
 #IC = np.asarray([0,24,32,0,0])
 #IC = np.asarray([12,8,10,8,6])
-IC = np.asarray([0,2,2,1]) * r
-#IC = np.asarray([0,2,2,1,0]) * r
+#IC = np.asarray([0,2,2,1]) * r
+IC = np.asarray([0,2,2,1,0]) * r
 N = len(IC)
 
-omega0 = 1. 
-lambda0 = 0.#-omega0/10. 
+omega0 = 1.
+lambda0 = 0.#-0.1/r#-omega0/10. 
 C = -.1 / r
 
 dIs = [di_FME_analysis] # data interpreters
