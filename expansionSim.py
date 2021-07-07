@@ -1,5 +1,5 @@
 import SimObj as S 
-#import DiffObj_RK as E 
+import DiffObj_RK as E 
 import FME_solverObjOdd as E 
 import time 
 import numpy as np
@@ -7,7 +7,7 @@ import utils as u
 import di_FME_analysis
 import scipy.fftpack as sp
 
-r = 2
+r = 4
 #ofile = "M4test_DOE_r"+str(r) # name of directory to be created
 ofile = "GrE_r" + str(r) # name of directory to be created
 #ofile = "testRepl_r" + str(r) # name of directory to be created
@@ -48,7 +48,10 @@ def initSim():
     s.kx = sp.fftshift(s.kord)
     kmax = np.max(np.abs(s.kord))
     s.L = np.pi*s.N/kmax
+    if s.N%2 == 1:
+        s.L = np.pi*(s.N-1)/kmax
     s.dx = s.L/s.N 
+
     s.x = s.dx*(.5+np.arange(-s.N/2, s.N/2))
     s.dk = 1./s.dx
 

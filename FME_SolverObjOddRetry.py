@@ -145,8 +145,8 @@ class DynVars(object):
         pad_psi_ = np.conj(pad_psi)
 
         kx_pad = 2*np.pi*sp.fftfreq(3*s.N, d = s.L/s.N)
-        kern_alt_pad = s.C/kx_pad**2 + s.Lambda0
-        kern_alt_pad[kx_pad == 0] = s.Lambda0
+        kern_alt_pad = 1./kx_pad**2 
+        kern_alt_pad[kx_pad == 0] = 0
 
         if self.is_dispersion_quadratic:
             a_ += -1j * dt_ * .5 * self.kord**2 * s.omega0*a
@@ -156,11 +156,11 @@ class DynVars(object):
         # C_ij * b[i] * a[j] * a[p+i-j]
         term = pad_psi*pad_psi_ * dt_
         term = sp.fft(term)
-        term = term * kern_alt_pad
+        term = term * (s.C * kern_alt_pad / np.sqrt(8.) + s.Lambda0 * np.sqrt(81./8))
         term = sp.ifft(term)
         term = term*pad_psi
         term = self.psi2a(term,s)[s.N:2*s.N]
-        da_ = term * np.sqrt(s.N)**2 / np.sqrt(8.) #* np.sqrt(s.L)**6
+        da_ = term * np.sqrt(s.N)**2  
         a_ += -1j * da_
 
         if self.ba_on:
@@ -171,7 +171,7 @@ class DynVars(object):
             term = self.a2psi(term,s, axis = 1)
             term = np.diag(term)
             term = sp.fft(term)
-            term = term * kern_alt_pad
+            term = term * (s.C * kern_alt_pad + s.Lambda0 * np.sqrt(81.))
             term = sp.ifft(term)
             term = term * pad_psi * dt_ 
             term = self.psi2a(term, s)[s.N:2*s.N]
