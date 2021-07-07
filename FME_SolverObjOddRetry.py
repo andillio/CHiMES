@@ -184,7 +184,7 @@ class DynVars(object):
             term = self.b2psi_(term,s, axis = 0) * dt_ 
             term = np.einsum("ij,i->ij", term, pad_psi)
             term = sp.fft(term, axis = 0)
-            term = np.einsum("ij,i->ij", term, kern_alt_pad)
+            term = np.einsum("ij,i->ij", term, (s.C * kern_alt_pad + s.Lambda0 * np.sqrt(81.)) )
             term = sp.ifft(term, axis = 0)
             term = self.a2psi(term,s, axis = 1)
             term = np.diag(term)
@@ -199,7 +199,7 @@ class DynVars(object):
             term = self.a2psi(term,s, axis = 1) * dt_ 
             term = np.einsum("ij,j->ij", term, pad_psi_)
             term = sp.fft(term, axis = 1)
-            term = np.einsum("ij,j->ij", term, kern_alt_pad)
+            term = np.einsum("ij,j->ij", term, (s.C * kern_alt_pad + s.Lambda0 * np.sqrt(81.)) )
             term = sp.ifft(term, axis = 1)
             term = self.a2psi(term,s, axis = 0)
             term = np.diag(term)
@@ -239,19 +239,19 @@ class DynVars(object):
 
         One = np.ones(s.N)
         deltak = np.einsum("i,j->ij", s.kord, One) - np.einsum("i,j->ji", s.kord, One)
-        kern = s.C/deltak**2 + s.Lambda0
-        kern[deltak == 0] = s.Lambda0
-        kern_alt = s.C/s.kx**2 + s.Lambda0
-        kern_alt[s.kx == 0] = s.Lambda0
-        kern_alt_ord = s.C/s.kord**2 + s.Lambda0
-        kern_alt_ord[s.kord==0]=s.Lambda0
+        kern = 1./deltak**2 
+        kern[deltak == 0] = 0.
+        kern_alt = 1./s.kx**2 
+        kern_alt[s.kx == 0] = 0.
+        kern_alt_ord = 1./s.kord**2 
+        kern_alt_ord[s.kord==0]=0.
         kx_pad = 2*np.pi*sp.fftfreq(3*s.N, d = s.L/s.N)
-        kern_alt_pad = s.C/kx_pad**2 + s.Lambda0
-        kern_alt_pad[kx_pad == 0] = s.Lambda0
+        kern_alt_pad = 1./kx_pad**2 
+        kern_alt_pad[kx_pad == 0] = 0.
 
         kx_pad_ord = sp.fftshift(kx_pad)
-        kern_alt_pad_ord = s.C/kx_pad_ord**2 + s.Lambda0
-        kern_alt_pad_ord[kx_pad_ord == 0] = s.Lambda0
+        kern_alt_pad_ord = 1./kx_pad_ord**2 
+        kern_alt_pad_ord[kx_pad_ord == 0] = 0.
 
         if self.is_dispersion_quadratic:
             aa_ += -1j * dt_ * .5 * (np.einsum("i,j->ij", s.kord, One)**2 + np.einsum("i,j->ji", s.kord, One)**2)*s.omega0*dada
