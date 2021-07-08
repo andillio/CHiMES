@@ -10,7 +10,7 @@ from numpy import linalg as LA
 import scipy.stats as st 
 
 
-simName = "GrE_r4"
+simName = "AttrE_r1"
 label = ""
 PLOT = True
 SCALE_TIME = False

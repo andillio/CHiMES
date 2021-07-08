@@ -264,7 +264,7 @@ class DynVars(object):
         term = self.a2psi(term,s, axis = 0) * dt_  
         term = np.einsum("ij,i->ij", term, pad_psi_)
         term = sp.fft(term, axis = 0)
-        term = np.einsum("ij,i->ij", term, kern_alt_pad)
+        term = np.einsum("ij,i->ij", term, (s.C * kern_alt_pad + s.Lambda0 * np.sqrt(81.)) )
         term = sp.ifft(term, axis = 0)
         term = np.einsum("ij,i->ij", term, pad_psi)
         term = self.psi2a(term,s, axis = 0)[s.N:2*s.N]
@@ -277,7 +277,7 @@ class DynVars(object):
         aa_pad = self.a2psi(aa_pad,s, axis = 1) * dt_ 
         term = pad_psi*pad_psi_
         term = sp.fft(term)
-        term = term*kern_alt_pad
+        term = term*(s.C * kern_alt_pad + s.Lambda0 * np.sqrt(81.)) 
         term = sp.ifft(term)
         term = np.einsum("ij,j->ij", aa_pad, term)
         term = self.psi2a(term,s, axis = 1)
@@ -291,7 +291,7 @@ class DynVars(object):
         term = self.b2psi_(term,s, axis = 0)  * dt_ 
         term = np.einsum("ij,i->ij", term, pad_psi)
         term = sp.fft(term, axis = 0)
-        term = np.einsum("ij,i->ij", term, kern_alt_pad)
+        term = np.einsum("ij,i->ij", term, (s.C * kern_alt_pad + s.Lambda0 * np.sqrt(81.)) )
         term = sp.ifft(term, axis = 0) # get V_y on axis 0
         term = np.einsum("ij,i->ij", term, pad_psi) 
         daa_ = self.psi2a(term,s, axis = 0)[s.N:2*s.N, :] / np.sqrt(36)
@@ -300,7 +300,7 @@ class DynVars(object):
         # C_ni * aa[n][l]
         aa_pad = np.concatenate((zeros2j, aa, zeros2j), axis = 1)
         aa_pad = np.concatenate((zeros2iL, aa_pad, zeros2iL), axis =0)
-        K = np.diag(kern_alt_pad_ord)
+        K = np.diag(kern_alt_pad_ord*s.C + s.Lambda0*9.)
         K = self.a2psi(K,s, axis = 0)
         K = self.a2psi(K,s, axis = 1)
         aa_x = self.a2psi(aa_pad,s, axis = 0)
@@ -321,8 +321,8 @@ class DynVars(object):
         One = np.ones(s.N)
 
         kx_pad = 2*np.pi*sp.fftfreq(3*s.N, d = s.L/s.N)
-        kern_alt_pad = s.C/kx_pad**2 + s.Lambda0
-        kern_alt_pad[kx_pad == 0] = s.Lambda0
+        kern_alt_pad = 1./kx_pad**2 
+        kern_alt_pad[kx_pad == 0] = 0.
          
         a_pad = np.concatenate((zeros, a, zeros))
         pad_psi = sp.ifft(sp.ifftshift(a_pad)) * np.sqrt(2*s.N) #* s.dk
@@ -338,7 +338,7 @@ class DynVars(object):
         term = self.a2psi(term, s, axis = 0) * dt_ 
         term = np.einsum("ij,i->ij", term, pad_psi_)
         term = sp.fft(term, axis = 0)
-        term = np.einsum("ij,i->ij", term, kern_alt_pad)
+        term = np.einsum("ij,i->ij", term, (s.C * kern_alt_pad + s.Lambda0 * np.sqrt(81.))  )
         term = sp.ifft(term, axis = 0)
         term = np.einsum("ij,i->ij", term, pad_psi_)
         term = self.psi_2b(term, s, axis = 0)[s.N:2*s.N]
@@ -348,7 +348,7 @@ class DynVars(object):
         # dbda[i+k-l][j] * b[l] * a[k]
         term = pad_psi*pad_psi_ * dt_ 
         term = sp.fft(term)
-        term = term * kern_alt_pad
+        term = term * (s.C * kern_alt_pad + s.Lambda0 * np.sqrt(81.)) 
         term = sp.ifft(term)
         ba_pad = np.concatenate((zeros2i,dbda,zeros2i), axis = 0)
         ba_pad = self.b2psi_(ba_pad,s, axis = 0)
@@ -362,7 +362,7 @@ class DynVars(object):
         term = self.b2psi_(term,s, axis = 0) * dt_
         term = np.einsum("ij,i->ij", term, pad_psi)
         term = sp.fft(term, axis = 0)
-        term = np.einsum("ij,i->ij", term, kern_alt_pad)
+        term = np.einsum("ij,i->ij", term, (s.C * kern_alt_pad + s.Lambda0 * np.sqrt(81.)) )
         term = sp.ifft(term, axis = 0)
         term = np.einsum("ij,i->ij", term, pad_psi_)
         term = self.psi_2b(term,s, axis = 0)[s.N:2*s.N]
